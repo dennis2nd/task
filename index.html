@@ -1,0 +1,111 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+<title>计算器</title>
+<!-- 加载 jQuery -->
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+<script type="text/javascript">
+
+$(document).ready(function () {
+
+	var isNumber = function (str) {
+		if (str != null && str != "") {
+			return !isNaN(str);
+		}
+		return false;
+	};
+
+	// 合法性检查
+	var illegeExpression = function (expression) {
+
+		// TODO: 合法性检查
+
+		return false;
+	}
+
+	var tokenExpression = function (expression) {
+
+		// 合法性检查
+		if ( illegeExpression(expression) )
+			return ;
+
+		var result = {}, index, arr, tag;
+		index = expression.indexOf("+");
+		if (index === -1) {
+			tag = 1; // "*"
+			arr = expression.split("*");
+		} else {
+			tag = 0;
+			arr = expression.split("+");
+		}
+		// 判断arr是否全为数字
+		for (i = 0; i < arr.length; ++i) {
+			if (!isNumber(arr[i]))
+				return false;
+		}
+
+		for (i = 0; i < arr.length; ++i) {
+			arr[i] = parseFloat(arr[i]);
+		}
+
+		if (tag === 1) {
+			result.op = "multiple";
+			result.data = arr;
+		} else {
+			result.op = "add";
+			result.data = arr;
+		}
+		return result;
+	};
+
+	var data2query = function (data) {
+		var str = "", i;
+		for (i = 0; i < data.length; ++i) {
+			if ( i !== 0 )
+				str = str + "&";
+			str = str + ("number=" + data[i]);
+		}
+		return str;
+	};
+
+	var ajaxServer = function (op, query_data) {
+		$.ajax({
+			type : "GET",
+			url : "http://localhost:3000/" + op,
+			data : query_data,
+			success : function (result) {
+				$("#result").text(result);
+			}
+		});
+	};
+
+	var main = function () {
+		var old_expr = "";
+		// 监听输入框是否变化
+		$('#expr').bind('input propertychange', function () {
+			var result,
+				new_expr = $('#expr').val();;
+			
+			if (old_expr === new_expr)
+				return ;
+
+			result = tokenExpression(new_expr);
+			//console.log(result.op, data2query(result.data));
+			if (result) {
+				ajaxServer(result.op, data2query(result.data));
+			}
+		});	
+	};
+
+	main();
+});
+
+</script>
+</head>
+<body>
+<div>
+<input type="text" id="expr" placeholder="输入加法或乘法表达式">&nbsp;&nbsp;=&nbsp;&nbsp;
+<div style="display:inline" id="result">0<div>
+</div>
+</body>
+</html>
